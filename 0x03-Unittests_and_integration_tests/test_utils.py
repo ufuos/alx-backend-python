@@ -22,9 +22,11 @@ class TestAccessNestedMap(unittest.TestCase):
         ({"a": 1}, ("a", "b")),        # value is not a dict, so "b" fails
     ])
     def test_access_nested_map_exception(self, nested_map, path):
-        """Test that KeyError is raised for invalid paths."""
-        with self.assertRaises(KeyError):
+        """Test that KeyError is raised for invalid paths with correct message."""
+        with self.assertRaises(KeyError) as cm:
             access_nested_map(nested_map, path)
+        # Check that the exception message matches the missing key
+        self.assertEqual(str(cm.exception), repr(path[-1]))
 
 
 if __name__ == "__main__":
