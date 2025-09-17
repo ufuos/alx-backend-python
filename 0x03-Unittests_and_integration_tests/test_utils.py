@@ -41,11 +41,11 @@ class TestAccessNestedMap(unittest.TestCase):
         nested_map: Dict[str, Any],
         path: Tuple[str, ...]
     ) -> None:
-        """Test that KeyError is raised for invalid paths with correct message."""
+        """Test that KeyError is raised for invalid paths with correct key."""
         with self.assertRaises(KeyError) as cm:
             access_nested_map(nested_map, path)
-        # Check that the exception message matches the missing key
-        self.assertEqual(str(cm.exception), repr(path[-1]))
+        # Correct check: args[0] contains the missing key itself
+        self.assertEqual(cm.exception.args[0], path[-1])
 
 
 class TestGetJson(unittest.TestCase):
