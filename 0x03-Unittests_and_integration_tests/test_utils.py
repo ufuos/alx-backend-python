@@ -33,17 +33,21 @@ class TestAccessNestedMap(unittest.TestCase):
         self.assertEqual(access_nested_map(nested_map, path), expected)
 
     @parameterized.expand([
-        ({}, ("a",)),                  # empty dict, missing key
-        ({"a": 1}, ("a", "b")),        # value is not a dict, so "b" fails
+        ({}, ("a",)),           # empty dict, missing key
+        ({"a": 1}, ("a", "b")),  # value is not a dict, so "b" fails
     ])
     def test_access_nested_map_exception(
         self,
         nested_map: Dict[str, Any],
         path: Tuple[str, ...]
     ) -> None:
-        """Test that KeyError is raised for invalid paths with correct message."""
+        """
+        Test that KeyError is raised for invalid paths
+        and that the exception message matches the missing key.
+        """
         with self.assertRaises(KeyError) as cm:
             access_nested_map(nested_map, path)
+
         # Ensure the missing key is exactly the one from path[-1]
         self.assertEqual(cm.exception.args[0], path[-1])
 
@@ -86,7 +90,11 @@ class TestMemoize(unittest.TestCase):
             def a_property(self):
                 return self.a_method()
 
-        with patch.object(TestClass, "a_method", return_value=42) as mock_method:
+        with patch.object(
+            TestClass,
+            "a_method",
+            return_value=42
+        ) as mock_method:
             obj = TestClass()
 
             result1 = obj.a_property()
