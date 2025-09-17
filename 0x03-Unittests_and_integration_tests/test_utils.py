@@ -1,29 +1,6 @@
 #!/usr/bin/env python3
 """
 Unit tests for utils.access_nested_map, utils.get_json, and utils.memoize.
-
-Has decorator
-
-msg - [Got]
-FAIL
-
-(5 chars long)
-
-[Expected]
-OK
-
-(3 chars long)
-test passes
-
- - [Got]
-FAILED (errors=1)
-
-(18 chars long)
-
-[Expected]
-OK
-
-(3 chars long)
 """
 
 import unittest
@@ -49,6 +26,25 @@ class TestAccessNestedMap(unittest.TestCase):
     ) -> None:
         """Test that access_nested_map returns expected result."""
         self.assertEqual(access_nested_map(nested_map, path), expected)
+
+    @parameterized.expand([
+        ({}, ("a",)),            # empty dict, missing key
+        ({"a": 1}, ("a", "b")),  # value is not a dict, so "b" fails
+    ])
+    def test_access_nested_map_exception(
+        self,
+        nested_map: Dict[str, Any],
+        path: Tuple[str, ...]
+    ) -> None:
+        """
+        Test that KeyError is raised for invalid paths
+        and that the exception message matches the missing key.
+        """
+        with self.assertRaises(KeyError) as cm:
+            access_nested_map(nested_map, path)
+
+        # KeyError message includes repr of the key, e.g. "'a'"
+        self.assertEqual(str(cm.exception), repr(path[-1]))
 
 
 class TestGetJson(unittest.TestCase):
