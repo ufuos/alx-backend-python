@@ -33,7 +33,7 @@ class TestAccessNestedMap(unittest.TestCase):
         self.assertEqual(access_nested_map(nested_map, path), expected)
 
     @parameterized.expand([
-        ({}, ("a",)),           # empty dict, missing key
+        ({}, ("a",)),            # empty dict, missing key
         ({"a": 1}, ("a", "b")),  # value is not a dict, so "b" fails
     ])
     def test_access_nested_map_exception(
@@ -48,8 +48,8 @@ class TestAccessNestedMap(unittest.TestCase):
         with self.assertRaises(KeyError) as cm:
             access_nested_map(nested_map, path)
 
-        # Ensure the missing key is exactly the one from path[-1]
-        self.assertEqual(cm.exception.args[0], path[-1])
+        # Compare against repr of the missing key (KeyError wraps in quotes)
+        self.assertEqual(str(cm.exception), repr(path[-1]))
 
 
 class TestGetJson(unittest.TestCase):
