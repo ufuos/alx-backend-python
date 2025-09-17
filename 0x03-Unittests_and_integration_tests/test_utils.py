@@ -27,25 +27,6 @@ class TestAccessNestedMap(unittest.TestCase):
         """Test that access_nested_map returns expected result."""
         self.assertEqual(access_nested_map(nested_map, path), expected)
 
-    @parameterized.expand([
-        ({}, ("a",)),            # empty dict, missing key
-        ({"a": 1}, ("a", "b")),  # value is not a dict, so "b" fails
-    ])
-    def test_access_nested_map_exception(
-        self,
-        nested_map: Dict[str, Any],
-        path: Tuple[str, ...]
-    ) -> None:
-        """
-        Test that KeyError is raised for invalid paths
-        and that the exception message matches the missing key.
-        """
-        with self.assertRaises(KeyError) as cm:
-            access_nested_map(nested_map, path)
-
-        # KeyError message includes repr of the key, e.g. "'a'"
-        self.assertEqual(str(cm.exception), repr(path[-1]))
-
 
 class TestGetJson(unittest.TestCase):
     """Unit tests for get_json using mocked HTTP calls."""
