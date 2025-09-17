@@ -4,7 +4,7 @@ Unit tests for client.GithubOrgClient
 """
 
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, PropertyMock
 from parameterized import parameterized
 
 from client import GithubOrgClient
@@ -18,7 +18,7 @@ class TestGithubOrgClient(unittest.TestCase):
         ("abc",),
     ])
     @patch("client.get_json")
-    def test_org(self, mock_get_json, org_name):
+    def test_org(self, org_name, mock_get_json):
         """
         Test that GithubOrgClient.org returns the expected value
         and get_json is called once with the correct URL.
@@ -45,7 +45,7 @@ class TestGithubOrgClient(unittest.TestCase):
         expected_url = "https://api.github.com/orgs/test-org/repos"
         payload = {"repos_url": expected_url}
 
-        with patch.object(GithubOrgClient, "org", new_callable=unittest.mock.PropertyMock) as mock_org:
+        with patch.object(GithubOrgClient, "org", new_callable=PropertyMock) as mock_org:
             mock_org.return_value = payload
             client = GithubOrgClient("test-org")
 
