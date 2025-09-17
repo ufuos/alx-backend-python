@@ -41,10 +41,10 @@ class TestAccessNestedMap(unittest.TestCase):
         nested_map: Dict[str, Any],
         path: Tuple[str, ...]
     ) -> None:
-        """Test that KeyError is raised for invalid paths with correct key."""
+        """Test that KeyError is raised for invalid paths with correct message."""
         with self.assertRaises(KeyError) as cm:
             access_nested_map(nested_map, path)
-        # Correct check: args[0] contains the missing key itself
+        # Ensure the missing key is exactly the one from path[-1]
         self.assertEqual(cm.exception.args[0], path[-1])
 
 
@@ -63,18 +63,12 @@ class TestGetJson(unittest.TestCase):
         mock_get: Mock
     ) -> None:
         """Test that get_json returns expected result with mocked requests."""
-        # Configure mock to return a response with .json() method
         mock_response = Mock()
         mock_response.json.return_value = test_payload
         mock_get.return_value = mock_response
 
-        # Call function under test
         result = get_json(test_url)
-
-        # Assert requests.get was called once with test_url
         mock_get.assert_called_once_with(test_url)
-
-        # Assert result matches expected payload
         self.assertEqual(result, test_payload)
 
 
@@ -95,11 +89,9 @@ class TestMemoize(unittest.TestCase):
         with patch.object(TestClass, "a_method", return_value=42) as mock_method:
             obj = TestClass()
 
-            # First call, should trigger a_method
             result1 = obj.a_property()
             self.assertEqual(result1, 42)
 
-            # Second call, should use cached result (a_method not called again)
             result2 = obj.a_property()
             self.assertEqual(result2, 42)
 
