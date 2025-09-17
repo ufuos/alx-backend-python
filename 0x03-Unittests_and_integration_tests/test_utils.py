@@ -1,6 +1,29 @@
 #!/usr/bin/env python3
 """
 Unit tests for utils.access_nested_map, utils.get_json, and utils.memoize.
+
+Has decorator
+
+msg - [Got]
+FAIL
+
+(5 chars long)
+
+[Expected]
+OK
+
+(3 chars long)
+test passes
+
+ - [Got]
+FAILED (errors=1)
+
+(18 chars long)
+
+[Expected]
+OK
+
+(3 chars long)
 """
 
 import unittest
