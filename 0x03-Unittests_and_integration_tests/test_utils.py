@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """
-Unit tests for utils.access_nested_map and utils.get_json.
+Unit tests for utils.access_nested_map, utils.get_json, and utils.memoize.
 
-These tests verify behavior for nested-map access and for fetching JSON
-from an HTTP endpoint while mocking external requests.
+These tests verify behavior for:
+- Nested-map access
+- Fetching JSON from an HTTP endpoint while mocking external requests
+- Memoization behavior of the @memoize decorator
 """
 
 import unittest
 from typing import Any, Dict, Tuple
 from parameterized import parameterized
 from unittest.mock import patch, Mock
-from utils import access_nested_map, get_json
+from utils import access_nested_map, get_json, memoize
 
 
 class TestAccessNestedMap(unittest.TestCase):
@@ -21,7 +23,12 @@ class TestAccessNestedMap(unittest.TestCase):
         ({"a": {"b": 2}}, ("a",), {"b": 2}),
         ({"a": {"b": 2}}, ("a", "b"), 2),
     ])
-    def test_access_nested_map(self, nested_map: Dict[str, Any], path: Tuple[str, ...], expected: Any) -> None:
+    def test_access_nested_map(
+        self,
+        nested_map: Dict[str, Any],
+        path: Tuple[str, ...],
+        expected: Any
+    ) -> None:
         """Test that access_nested_map returns expected result."""
         self.assertEqual(access_nested_map(nested_map, path), expected)
 
@@ -29,7 +36,11 @@ class TestAccessNestedMap(unittest.TestCase):
         ({}, ("a",)),                  # empty dict, missing key
         ({"a": 1}, ("a", "b")),        # value is not a dict, so "b" fails
     ])
-    def test_access_nested_map_exception(self, nested_map: Dict[str, Any], path: Tuple[str, ...]) -> None:
+    def test_access_nested_map_exception(
+        self,
+        nested_map: Dict[str, Any],
+        path: Tuple[str, ...]
+    ) -> None:
         """Test that KeyError is raised for invalid paths with correct message."""
         with self.assertRaises(KeyError) as cm:
             access_nested_map(nested_map, path)
@@ -45,7 +56,12 @@ class TestGetJson(unittest.TestCase):
         ("http://holberton.io", {"payload": False}),
     ])
     @patch("utils.requests.get")
-    def test_get_json(self, test_url: str, test_payload: Dict[str, Any], mock_get: Mock) -> None:
+    def test_get_json(
+        self,
+        test_url: str,
+        test_payload: Dict[str, Any],
+        mock_get: Mock
+    ) -> None:
         """Test that get_json returns expected result with mocked requests."""
         # Configure mock to return a response with .json() method
         mock_response = Mock()
@@ -60,6 +76,34 @@ class TestGetJson(unittest.TestCase):
 
         # Assert result matches expected payload
         self.assertEqual(result, test_payload)
+
+
+class TestMemoize(unittest.TestCase):
+    """Unit tests for the memoize decorator."""
+
+    def test_memoize(self) -> None:
+        """Test that memoize caches method results."""
+
+        class TestClass:
+            def a_method(self):
+                return 42
+
+            @memoize
+            def a_property(self):
+                return self.a_method()
+
+        with patch.object(TestClass, "a_method", return_value=42) as mock_method:
+            obj = TestClass()
+
+            # First call, should trigger a_method
+            result1 = obj.a_property()
+            self.assertEqual(result1, 42)
+
+            # Second call, should use cached result (a_method not called again)
+            result2 = obj.a_property()
+            self.assertEqual(result2, 42)
+
+            mock_method.assert_called_once()
 
 
 if __name__ == "__main__":
