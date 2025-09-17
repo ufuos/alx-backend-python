@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 """
 Unit tests for utils.access_nested_map, utils.get_json, and utils.memoize.
-
-These tests verify behavior for:
-- Nested-map access
-- Fetching JSON from an HTTP endpoint while mocking external requests
-- Memoization behavior of the @memoize decorator
 """
 
 import unittest
@@ -107,4 +102,4 @@ class TestMemoize(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=0)  # keeps output short and just shows OK/FAILED
