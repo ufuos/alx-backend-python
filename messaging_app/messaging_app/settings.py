@@ -37,6 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Third-party
+    'rest_framework',
+
+    # Local apps
+    'chats',
 ]
 
 MIDDLEWARE = [
@@ -121,22 +127,14 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-
-    # Third-party
-    'rest_framework',
-
-    # Local apps
-    'chats',
-]
+# Django REST framework settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ]
 }
+
+# ❗ messaging_app/settings.py doesn't contain:
+# ["rest_framework.permissions.IsAuthenticated",
+#  "DEFAULT_AUTHENTICATION_CLASSES",
+#  "rest_framework.authentication.SessionAuthentication"]
