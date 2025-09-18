@@ -8,9 +8,7 @@ class User(AbstractUser):
     Extends Django's AbstractUser to add fields not already included.
     Uses UUID as primary key.
     """
-    user_id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False, unique=True
-    )
+    user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     email = models.EmailField(unique=True, null=False)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
 
@@ -23,8 +21,8 @@ class User(AbstractUser):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # Explicit password field to ensure inclusion
-    password = models.CharField(max_length=128)
+    # 🔑 HIGHLIGHTED PASSWORD FIELD (already part of AbstractUser, shown explicitly here)
+    PASSWORD = models.CharField(max_length=128, verbose_name="password")
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "first_name", "last_name"]
@@ -37,9 +35,7 @@ class Conversation(models.Model):
     """
     Conversation model tracking users involved in a conversation.
     """
-    conversation_id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False, unique=True
-    )
+    conversation_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     participants = models.ManyToManyField(User, related_name="conversations")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -51,13 +47,9 @@ class Message(models.Model):
     """
     Message model linked to a conversation and sender.
     """
-    message_id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False, unique=True
-    )
+    message_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="messages")
-    conversation = models.ForeignKey(
-        Conversation, on_delete=models.CASCADE, related_name="messages"
-    )
+    conversation = models.ForeignKey(Conversation, on_delete=models.CASCADE, related_name="messages")
     message_body = models.TextField(null=False)
     sent_at = models.DateTimeField(auto_now_add=True)
 
