@@ -102,4 +102,4 @@ class TestMemoize(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main(verbosity=0)  # keeps output short and just shows OK/FAILED
+    unittest.main()
