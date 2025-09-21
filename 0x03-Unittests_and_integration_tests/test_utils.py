@@ -43,8 +43,8 @@ class TestAccessNestedMap(unittest.TestCase):
         with self.assertRaises(KeyError) as cm:
             access_nested_map(nested_map, path)
 
-        # Compare against the actual missing key (more reliable than str())
-        self.assertEqual(cm.exception.args[0], path[-1])
+        # Ensure the exception message string contains the missing key
+        self.assertEqual(str(cm.exception), repr(path[-1]))
 
 
 class TestGetJson(unittest.TestCase):
