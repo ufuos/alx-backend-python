@@ -1,3 +1,5 @@
+
+
 #!/usr/bin/env python3
 """
 Unit tests and integration tests for client.GithubOrgClient
@@ -139,8 +141,8 @@ class TestMemoize(unittest.TestCase):
             def a_method(self):
                 return 42
 
-            @property
             @memoize
+            @property
             def a_property(self):
                 return self.a_method()
 
