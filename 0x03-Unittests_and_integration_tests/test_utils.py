@@ -8,8 +8,8 @@ import unittest
 from unittest.mock import patch, PropertyMock, Mock
 from parameterized import parameterized, parameterized_class
 
-# Correct imports
-from client import GithubOrgClient
+# Correct imports - adjusted to avoid ImportError issues
+import client
 from fixtures import org_payload, repos_payload, expected_repos, apache2_repos
 from utils import memoize
 
@@ -26,9 +26,9 @@ class TestGithubOrgClient(unittest.TestCase):
         """Test that GithubOrgClient.org returns the expected value"""
         expected_url = f"https://api.github.com/orgs/{org_name}"
         mock_get_json.return_value = {"org": org_name}
-        client = GithubOrgClient(org_name)
+        client_instance = client.GithubOrgClient(org_name)
 
-        result = client.org
+        result = client_instance.org
 
         self.assertEqual(result, {"org": org_name})
         mock_get_json.assert_called_once_with(expected_url)
@@ -39,12 +39,12 @@ class TestGithubOrgClient(unittest.TestCase):
         payload = {"repos_url": expected_url}
 
         with patch.object(
-            GithubOrgClient, "org", new_callable=PropertyMock
+            client.GithubOrgClient, "org", new_callable=PropertyMock
         ) as mock_org:
             mock_org.return_value = payload
-            client = GithubOrgClient("test-org")
+            client_instance = client.GithubOrgClient("test-org")
 
-            result = client._public_repos_url
+            result = client_instance._public_repos_url
 
             self.assertEqual(result, expected_url)
 
@@ -60,14 +60,14 @@ class TestGithubOrgClient(unittest.TestCase):
         expected = ["repo1", "repo2", "repo3"]
 
         with patch.object(
-            GithubOrgClient, "_public_repos_url", new_callable=PropertyMock
+            client.GithubOrgClient, "_public_repos_url", new_callable=PropertyMock
         ) as mock_repos_url:
             mock_repos_url.return_value = (
                 "https://api.github.com/orgs/test-org/repos"
             )
-            client = GithubOrgClient("test-org")
+            client_instance = client.GithubOrgClient("test-org")
 
-            result = client.public_repos()
+            result = client_instance.public_repos()
 
             self.assertEqual(result, expected)
             mock_repos_url.assert_called_once()
@@ -81,7 +81,7 @@ class TestGithubOrgClient(unittest.TestCase):
     ])
     def test_has_license(self, repo, license_key, expected):
         """Test has_license method"""
-        result = GithubOrgClient.has_license(repo, license_key)
+        result = client.GithubOrgClient.has_license(repo, license_key)
         self.assertEqual(result, expected)
 
 
@@ -117,14 +117,14 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
     def test_public_repos(self):
         """Test public_repos returns expected list"""
-        client = GithubOrgClient("google")
-        self.assertEqual(client.public_repos(), self.expected_repos)
+        client_instance = client.GithubOrgClient("google")
+        self.assertEqual(client_instance.public_repos(), self.expected_repos)
 
     def test_public_repos_with_license(self):
         """Test filtering repos by license"""
-        client = GithubOrgClient("google")
+        client_instance = client.GithubOrgClient("google")
         self.assertEqual(
-            client.public_repos(license="apache-2.0"),
+            client_instance.public_repos(license="apache-2.0"),
             self.apache2_repos
         )
 
@@ -139,11 +139,14 @@ class TestMemoize(unittest.TestCase):
             def a_method(self):
                 return 42
 
+            @property
             @memoize
             def a_property(self):
                 return self.a_method()
 
-        with patch.object(TestClass, "a_method", return_value=42) as mock_method:
+        with patch.object(
+            TestClass, "a_method", return_value=42
+        ) as mock_method:
             obj = TestClass()
 
             # First call should call a_method
