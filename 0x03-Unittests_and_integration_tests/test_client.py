@@ -100,12 +100,10 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
         def side_effect(url):
             mock_response = Mock()
-            if url == "https://api.github.com/orgs/test-org":
+            if url == "https://api.github.com/orgs/google":
                 mock_response.json.return_value = cls.org_payload
-            elif url == "https://api.github.com/orgs/test-org/repos":
+            elif url == "https://api.github.com/orgs/google/repos":
                 mock_response.json.return_value = cls.repos_payload
-            else:
-                mock_response.json.return_value = None
             return mock_response
 
         cls.mock_get.side_effect = side_effect
@@ -117,12 +115,12 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
 
     def test_public_repos(self):
         """Test public_repos returns expected list"""
-        client = GithubOrgClient("test-org")
+        client = GithubOrgClient("google")
         self.assertEqual(client.public_repos(), self.expected_repos)
 
     def test_public_repos_with_license(self):
         """Test filtering repos by license"""
-        client = GithubOrgClient("test-org")
+        client = GithubOrgClient("google")
         self.assertEqual(
             client.public_repos(license="apache-2.0"),
             self.apache2_repos
