@@ -3,8 +3,11 @@ from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics, permissions
 from rest_framework.permissions import IsAuthenticated
 from .models import Conversation, Message
+from .filters import MessageFilter
+from .pagination import MessagePagination
 from .serializers import ConversationSerializer, MessageSerializer
 
 
@@ -18,7 +21,9 @@ class ConversationViewSet(viewsets.ModelViewSet):
     filterset_fields = ["participants"]  # filter by participants
     search_fields = ["title"]            # search by title if field exists
     ordering_fields = ["created_at"]     # order by creation time
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = MessagePagination
+    filterset_class = MessageFilter
 
     def create(self, request, *args, **kwargs):
         """
