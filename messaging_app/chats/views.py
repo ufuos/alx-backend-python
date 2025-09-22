@@ -3,9 +3,9 @@ from rest_framework import viewsets, status, filters
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.permissions import IsAuthenticated
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
-from rest_framework.permissions import IsAuthenticated
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
@@ -40,12 +40,38 @@ class ConversationViewSet(viewsets.ModelViewSet):
         Example: POST /conversations/{id}/send_message/
         """
         conversation = self.get_object()
+        # Ensure user is a participant
+        if request.user not in conversation.participants.all():
+            return Response(
+                {"detail": "You are not a participant of this conversation."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         data = request.data.copy()
         data["conversation"] = conversation.id
         serializer = MessageSerializer(data=data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(sender=request.user, conversation=conversation)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["get"])
+    def messages(self, request, pk=None):
+        """
+        Retrieve all messages for a conversation.
+        Example: GET /conversations/{id}/messages/
+        """
+        conversation = self.get_object()
+        # Check if user is allowed to view
+        if request.user not in conversation.participants.all():
+            return Response(
+                {"detail": "You are not authorized to view these messages."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        conversation_id = conversation.id
+        messages = Message.objects.filter(conversation_id=conversation_id).order_by("timestamp")
+        serializer = MessageSerializer(messages, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class MessageViewSet(viewsets.ModelViewSet):
@@ -66,7 +92,16 @@ class MessageViewSet(viewsets.ModelViewSet):
         """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        message = serializer.save()
+
+        conversation_id = request.data.get("conversation")
+        conversation = Conversation.objects.filter(id=conversation_id).first()
+        if not conversation or request.user not in conversation.participants.all():
+            return Response(
+                {"detail": "You are not allowed to send messages in this conversation."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        message = serializer.save(sender=request.user, conversation=conversation)
         return Response(
             MessageSerializer(message).data,
             status=status.HTTP_201_CREATED,
