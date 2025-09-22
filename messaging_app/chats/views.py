@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
+from rest_framework.permissions import IsAuthenticated
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
@@ -17,6 +18,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
     filterset_fields = ["participants"]  # filter by participants
     search_fields = ["title"]            # search by title if field exists
     ordering_fields = ["created_at"]     # order by creation time
+    permission_classes = [IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         """
