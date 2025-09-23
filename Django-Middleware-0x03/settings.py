@@ -48,6 +48,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # ✅ Add your custom middleware here
     "chats.middleware.RequestLoggingMiddleware",
+    "chats.middleware.RestrictAccessByTimeMiddleware",
 ]
 
 
