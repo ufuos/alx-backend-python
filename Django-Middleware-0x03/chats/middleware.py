@@ -5,6 +5,7 @@ from django.http import HttpResponseForbidden
 import time
 from django.http import JsonResponse
 from collections import defaultdict, deque
+from django.http import JsonResponse
 
 class OffensiveLanguageMiddleware:
     def __init__(self, get_response):
