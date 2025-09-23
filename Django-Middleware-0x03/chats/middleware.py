@@ -7,6 +7,34 @@ from django.http import JsonResponse
 from collections import defaultdict, deque
 from django.http import JsonResponse
 
+class RolepermissionMiddleware:
+    """
+    Middleware to enforce role-based permissions for chat users.
+    Only users with role 'admin' or 'moderator' are allowed.
+    """
+
+    def __init__(self, get_response):
+        # One-time configuration and initialization
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Before the view (and later middleware) is called
+        user = getattr(request, "user", None)
+
+        if user and user.is_authenticated:
+            # Check if user has 'role' attribute
+            user_role = getattr(user, "role", None)
+
+            if user_role not in ["admin", "moderator"]:
+                return JsonResponse(
+                    {"error": "Forbidden: insufficient role permissions"},
+                    status=403
+                )
+
+        # Call the next middleware or view
+        response = self.get_response(request)
+        return response
+
 class OffensiveLanguageMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
