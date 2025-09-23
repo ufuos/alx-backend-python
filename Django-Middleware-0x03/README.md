@@ -1,18 +1,36 @@
-🚀 Features
+Django-Middleware-0x03 🚀
+Features
+🔐 Authentication & Messaging
 
-🔐 User Authentication (Register, Login, Logout)
+User Authentication (Register, Login, Logout)
 
-💬 Send and receive private messages between users
+Send and receive private messages between users
 
-📅 Message timestamps and ordering
+Message timestamps and ordering
 
-👀 Read/Unread message tracking
+Read/Unread message tracking
 
-🛠️ Admin panel for user and message management
+Admin panel for user and message management
 
-🎨 Responsive UI (Django templates + Bootstrap/Tailwind)
+Responsive UI (Django templates + Bootstrap/Tailwind)
 
-⚡ Extendable for WebSockets/Channels (real-time chat)
+Extendable for WebSockets/Channels (real-time chat)
+
+🧩 Middleware Features
+
+RolePermissionMiddleware → Enforces role-based access (e.g., only Admins/Moderators can perform restricted actions).
+
+RequestLoggingMiddleware → Logs every request with user, path, method, and timestamp.
+
+ExecutionTimeMiddleware → Measures and logs request processing time for performance monitoring.
+
+RateLimitMiddleware → Throttles excessive requests per user/IP to prevent abuse (basic rate limiting).
+
+CustomHeaderMiddleware → Adds security and project-specific headers to all HTTP responses.
+
+MaintenanceModeMiddleware → Blocks non-admin users when the site is in maintenance mode.
+
+ExceptionHandlingMiddleware → Catches unhandled errors and returns clean, JSON-friendly error responses.
 
 🛠️ Tech Stack
 
@@ -24,53 +42,32 @@ Frontend: Django Templates, Bootstrap/Tailwind CSS
 
 Authentication: Django Auth (JWT/Allauth optional)
 
-📂 Project Structure
-messaging-app/
-│── manage.py
-│── requirements.txt
-│── README.md
-│
-├── messaging_app/ # Main project settings
-│ ├── settings.py
-│ ├── urls.py
-│ └── wsgi.py
-│
-├── accounts/ # User authentication app
-│ ├── models.py
-│ ├── views.py
-│ └── urls.py
-│
-└── messages/ # Messaging app
-├── models.py
-├── views.py
-└── urls.py
-
 ⚙️ Installation & Setup
 
-Clone the repository
+Clone the repository:
 
 git clone https://github.com/yourusername/messaging-app.git
 cd messaging-app
 
-Create a virtual environment & activate it
+Create a virtual environment & activate it:
 
 python -m venv venv
 source venv/bin/activate # On Mac/Linux
 venv\Scripts\activate # On Windows
 
-Install dependencies
+Install dependencies:
 
 pip install -r requirements.txt
 
-Apply migrations
+Apply migrations:
 
 python manage.py migrate
 
-Create a superuser
+Create a superuser:
 
 python manage.py createsuperuser
 
-Run the development server
+Run the development server:
 
 python manage.py runserver
 
@@ -80,7 +77,11 @@ Open your browser at 👉 http://127.0.0.1:8000/
 
 (Add your own screenshots here for login, inbox, message view, etc.)
 
-Login Page Inbox Chat Window
+Login Page
+
+Inbox
+
+Chat Window
 
 🧪 Running Tests
 python manage.py test
