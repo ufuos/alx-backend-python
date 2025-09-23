@@ -49,6 +49,7 @@ MIDDLEWARE = [
     # ✅ Add your custom middleware here
     "chats.middleware.RequestLoggingMiddleware",
     "chats.middleware.RestrictAccessByTimeMiddleware",
+    "chats.middleware.OffensiveLanguageMiddleware",
 ]
 
 
