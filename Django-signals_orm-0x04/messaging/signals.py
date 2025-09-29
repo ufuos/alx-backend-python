@@ -1,8 +1,10 @@
-from django.db.models.signals import post_save
-from django.db.models.signals import pre_save
+from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
-from .models import Message, Notification
-from .models import Message, MessageHistory
+from django.contrib.auth import get_user_model
+from .models import Message, Notification, MessageHistory
+
+User = get_user_model()
+
 
 @receiver(post_save, sender=Message)
 def create_notification(sender, instance, created, **kwargs):
@@ -12,9 +14,11 @@ def create_notification(sender, instance, created, **kwargs):
             user=instance.receiver,
             message=instance
         )
+
+
 @receiver(pre_save, sender=Message)
 def log_message_edit(sender, instance, **kwargs):
-    # If updating (not creating a new message)
+    """Log edits to messages in MessageHistory"""
     if instance.pk:
         try:
             old_message = Message.objects.get(pk=instance.pk)
@@ -28,3 +32,18 @@ def log_message_edit(sender, instance, **kwargs):
                 instance.edited = True
         except Message.DoesNotExist:
             pass
+
+
+@receiver(post_delete, sender=User)
+def cleanup_user_related_data(sender, instance, **kwargs):
+    """Delete all user-related data when the user is deleted"""
+    # Delete messages sent or received by the user
+    Message.objects.filter(sender=instance).delete()
+    Message.objects.filter(receiver=instance).delete()
+
+    # Delete notifications related to the user
+    Notification.objects.filter(user=instance).delete()
+
+    # Delete message histories related to messages sent by user
+    MessageHistory.objects.filter(message__sender=instance).delete()
+    MessageHistory.objects.filter(message__receiver=instance).delete()
