@@ -14,8 +14,8 @@ def inbox(request):
     View to show unread messages for the logged-in user.
     """
     unread_messages = (
-        Message.unread.unread_for_user(request.user)     # ✅ use custom manager
-        .only("id", "sender", "content", "timestamp")   # optimization
+        Message.objects.filter(receiver=request.user, read=False)  # ✅ replaced with objects.filter
+        .only("id", "sender", "content", "timestamp")
         .select_related("sender")
         .order_by("-timestamp")
     )
