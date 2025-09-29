@@ -1,36 +1,37 @@
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model, logout
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, JsonResponse
-from django.views.decorators.cache import cache_page   # ✅ import cache_page
-from .models import Message
-from django.shortcuts import render
+from django.views.decorators.cache import cache_page
 from .models import Message
 
 User = get_user_model()
 
+@login_required
 def inbox(request):
-    unread_messages = Message.unread.for_user(request.user)
+    """
+    View to show unread messages for the logged-in user.
+    """
+    unread_messages = (
+        Message.objects
+        .filter(receiver=request.user, is_read=False)   # ✅ now uses Message.objects.filter
+        .only("id", "sender", "content", "timestamp")  # ✅ added .only()
+        .select_related("sender")                      # optimization
+        .order_by("-timestamp")
+    )
     return render(request, "messaging/inbox.html", {"unread_messages": unread_messages})
+
 
 @login_required
 def delete_user(request):
-    """
-    View to allow a logged-in user to delete their own account.
-    """
     user = request.user
-    user.delete()   # This will trigger post_delete signal
+    user.delete()
     logout(request)
     return HttpResponse("Your account and all related data have been deleted successfully.")
 
 
 @login_required
 def send_message(request):
-    """
-    View for sending a message from the logged-in user (sender)
-    to another user (receiver).
-    """
     if request.method == "POST":
         receiver_id = request.POST.get("receiver_id")
         content = request.POST.get("content")
@@ -40,7 +41,6 @@ def send_message(request):
 
         receiver = get_object_or_404(User, id=receiver_id)
 
-        # Save the message
         message = Message.objects.create(
             sender=request.user,
             receiver=receiver,
@@ -59,16 +59,16 @@ def send_message(request):
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
-@cache_page(60)         # ✅ explicitly cache for 60 seconds
+@cache_page(60)
 @login_required
-def inbox(request):
+def all_messages(request):
     """
     View to get all messages for the logged-in user.
-    Uses select_related to optimize sender/receiver queries.
     """
     messages = (
         Message.objects
-        .filter(receiver=request.user)
+        .filter(receiver=request.user)                  # ✅ Message.objects.filter present
+        .only("id", "sender", "receiver", "content", "timestamp")  # ✅ .only added
         .select_related("sender", "receiver")
         .order_by("-timestamp")
     )
