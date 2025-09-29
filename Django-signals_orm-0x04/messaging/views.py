@@ -7,16 +7,16 @@ from .models import Message
 
 User = get_user_model()
 
+
 @login_required
 def inbox(request):
     """
     View to show unread messages for the logged-in user.
     """
     unread_messages = (
-        Message.objects
-        .filter(receiver=request.user, is_read=False)   # ✅ now uses Message.objects.filter
-        .only("id", "sender", "content", "timestamp")  # ✅ added .only()
-        .select_related("sender")                      # optimization
+        Message.unread.unread_for_user(request.user)     # ✅ use custom manager
+        .only("id", "sender", "content", "timestamp")   # optimization
+        .select_related("sender")
         .order_by("-timestamp")
     )
     return render(request, "messaging/inbox.html", {"unread_messages": unread_messages})
@@ -67,8 +67,8 @@ def all_messages(request):
     """
     messages = (
         Message.objects
-        .filter(receiver=request.user)                  # ✅ Message.objects.filter present
-        .only("id", "sender", "receiver", "content", "timestamp")  # ✅ .only added
+        .filter(receiver=request.user)
+        .only("id", "sender", "receiver", "content", "timestamp")
         .select_related("sender", "receiver")
         .order_by("-timestamp")
     )
