@@ -20,8 +20,18 @@ class Message(models.Model):
         blank=True,
         related_name="edited_messages"
     )
+    # ✅ NEW FIELD for threaded conversations
+    parent_message = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        related_name="replies",
+        on_delete=models.CASCADE
+    )
 
     def __str__(self):
+        if self.parent_message:
+            return f"Reply by {self.sender} to {self.parent_message.id}: {self.content[:20]}"
         return f"From {self.sender} to {self.receiver}: {self.content[:20]}"
 
 
