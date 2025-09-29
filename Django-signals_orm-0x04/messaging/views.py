@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model, logout
 from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
+from django.views.decorators.cache import cache_page   # ✅ import cache_page
 from .models import Message
 
 User = get_user_model()
@@ -36,8 +37,8 @@ def send_message(request):
 
         # Save the message
         message = Message.objects.create(
-            sender=request.user,   # sender=request.user ✅
-            receiver=receiver,     # receiver field ✅
+            sender=request.user,
+            receiver=receiver,
             content=content
         )
 
@@ -53,6 +54,7 @@ def send_message(request):
     return JsonResponse({"error": "Invalid request method"}, status=405)
 
 
+@cache_page(60)         # ✅ explicitly cache for 60 seconds
 @login_required
 def inbox(request):
     """
@@ -61,8 +63,8 @@ def inbox(request):
     """
     messages = (
         Message.objects
-        .filter(receiver=request.user)   # ✅ Message.objects.filter
-        .select_related("sender", "receiver")  # ✅ select_related
+        .filter(receiver=request.user)
+        .select_related("sender", "receiver")
         .order_by("-timestamp")
     )
 
