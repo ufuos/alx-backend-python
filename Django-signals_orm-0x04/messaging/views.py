@@ -5,9 +5,14 @@ from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.cache import cache_page   # ✅ import cache_page
 from .models import Message
+from django.shortcuts import render
+from .models import Message
 
 User = get_user_model()
 
+def inbox(request):
+    unread_messages = Message.unread.for_user(request.user)
+    return render(request, "messaging/inbox.html", {"unread_messages": unread_messages})
 
 @login_required
 def delete_user(request):

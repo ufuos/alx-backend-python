@@ -1,6 +1,20 @@
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
+# ----------------------
+# Custom Manager
+# ----------------------
+class UnreadMessagesManager(models.Manager):
+    def for_user(self, user):
+        return (
+            self.get_queryset()
+            .filter(receiver=user, read=False)  # ✅ correct fields
+            .only("id", "sender", "receiver", "content", "timestamp")  # ✅ optimization
+        )
 
 
 class Message(models.Model):
@@ -12,22 +26,32 @@ class Message(models.Model):
     )
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    edited = models.BooleanField(default=False)  # track if edited
-    edited_by = models.ForeignKey(   # NEW FIELD
+    edited = models.BooleanField(default=False)
+
+    # track if edited
+    edited_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="edited_messages"
+        related_name="edited_messages",
     )
-    # ✅ NEW FIELD for threaded conversations
+
+    # threaded conversations
     parent_message = models.ForeignKey(
         "self",
         null=True,
         blank=True,
         related_name="replies",
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
+
+    # ✅ managers
+    objects = models.Manager()  # default
+    unread = UnreadMessagesManager()  # custom
+
+    # ✅ new field to track read/unread
+    read = models.BooleanField(default=False)
 
     def __str__(self):
         if self.parent_message:
@@ -53,12 +77,12 @@ class MessageHistory(models.Model):
     )
     old_content = models.TextField()
     edited_at = models.DateTimeField(auto_now_add=True)
-    edited_by = models.ForeignKey(   # NEW FIELD for history tracking
+    edited_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="edit_history"
+        related_name="edit_history",
     )
 
     def __str__(self):
