@@ -1,3 +1,4 @@
+
 version: "3.9"
 
 services:
@@ -5,6 +6,7 @@ services:
     image: mysql:8.0
     restart: always
     environment:
+      MYSQL_DB: ${MYSQL_DB}          # Added to match the required variable
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
@@ -18,7 +20,7 @@ services:
 
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python3 manage.py runserver 0.0.0.0:8000   # Changed 'python' → 'python3'
     volumes:
       - .:/app
     ports:
@@ -30,3 +32,4 @@ services:
 
 volumes:
   db_data:
+
