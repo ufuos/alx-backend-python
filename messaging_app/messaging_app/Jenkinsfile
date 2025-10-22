@@ -1,8 +1,9 @@
+
 pipeline {
   agent any
 
   environment {
-    // ID of the Jenkins credential (Secret text or username/password)
+    // Jenkins GitHub credentials ID (Secret Text or Username/Password)
     GIT_CREDENTIALS_ID = 'github-token'
     // relative path to the python project inside the repo
     PROJECT_DIR = 'messaging_app'
@@ -10,7 +11,7 @@ pipeline {
   }
 
   options {
-    // Keep a reasonable number of builds to save disk
+    // Keep a reasonable number of builds
     buildDiscarder(logRotator(numToKeepStr: '20'))
     // Add timestamps to console logs
     timestamps()
@@ -20,16 +21,12 @@ pipeline {
 
     stage('Checkout') {
       steps {
-        // Checkout source code from GitHub
-        checkout([
-          $class: 'GitSCM',
-          branches: [[name: '*/main']],
-          userRemoteConfigs: [[
-            url: 'https://github.com/<your-org-or-username>/alx-backend-python.git',
+        // ✅ Explicitly define git branch
+        git branch: 'main',
+            url: 'https://github.com/ufuos/alx-backend-python.git',
             credentialsId: env.GIT_CREDENTIALS_ID
-          ]]
-        ])
-        echo "✅ Repository checked out successfully."
+
+        echo "✅ Code checked out from main branch."
       }
     }
 
@@ -41,7 +38,7 @@ pipeline {
             mkdir -p reports
             python3 -m venv .venv || python -m venv .venv
             . .venv/bin/activate
-            pip install --upgrade pip
+            pip3 install --upgrade pip
             echo "✅ Virtual environment created and pip upgraded."
           '''
         }
@@ -51,10 +48,12 @@ pipeline {
     stage('Install dependencies') {
       steps {
         dir("${PROJECT_DIR}") {
+          // ✅ Explicitly reference messaging_app/requirements.txt
           sh '''
             . .venv/bin/activate
-            if [ -f requirements.txt ]; then
-              pip install -r requirements.txt
+            if [ -f messaging_app/requirements.txt ] || [ -f requirements.txt ]; then
+              echo "📦 Installing dependencies from requirements.txt..."
+              pip3 install -r requirements.txt
               echo "✅ Dependencies installed successfully."
             else
               echo "⚠️ No requirements.txt found — skipping dependency installation."
@@ -69,7 +68,7 @@ pipeline {
         dir("${PROJECT_DIR}") {
           sh '''
             . .venv/bin/activate
-            pip install pytest pytest-cov || true
+            pip3 install pytest pytest-cov || true
             pytest --junitxml=reports/results.xml || true
           '''
         }
