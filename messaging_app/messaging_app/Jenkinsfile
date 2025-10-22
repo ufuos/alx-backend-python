@@ -1,0 +1,120 @@
+pipeline {
+  agent any
+
+  environment {
+    // ID of the Jenkins credential (Secret text or username/password)
+    GIT_CREDENTIALS_ID = 'github-token'
+    // relative path to the python project inside the repo
+    PROJECT_DIR = 'messaging_app'
+    REPORT_DIR = "${env.WORKSPACE}/${PROJECT_DIR}/reports"
+  }
+
+  options {
+    // Keep a reasonable number of builds to save disk
+    buildDiscarder(logRotator(numToKeepStr: '20'))
+    // Add timestamps to console logs
+    timestamps()
+  }
+
+  stages {
+
+    stage('Checkout') {
+      steps {
+        // Checkout source code from GitHub
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: '*/main']],
+          userRemoteConfigs: [[
+            url: 'https://github.com/<your-org-or-username>/alx-backend-python.git',
+            credentialsId: env.GIT_CREDENTIALS_ID
+          ]]
+        ])
+        echo "✅ Repository checked out successfully."
+      }
+    }
+
+    stage('Prepare Python') {
+      steps {
+        dir("${PROJECT_DIR}") {
+          // Create reports directory and virtual environment
+          sh '''
+            mkdir -p reports
+            python3 -m venv .venv || python -m venv .venv
+            . .venv/bin/activate
+            pip install --upgrade pip
+            echo "✅ Virtual environment created and pip upgraded."
+          '''
+        }
+      }
+    }
+
+    stage('Install dependencies') {
+      steps {
+        dir("${PROJECT_DIR}") {
+          sh '''
+            . .venv/bin/activate
+            if [ -f requirements.txt ]; then
+              pip install -r requirements.txt
+              echo "✅ Dependencies installed successfully."
+            else
+              echo "⚠️ No requirements.txt found — skipping dependency installation."
+            fi
+          '''
+        }
+      }
+    }
+
+    stage('Run tests') {
+      steps {
+        dir("${PROJECT_DIR}") {
+          sh '''
+            . .venv/bin/activate
+            pip install pytest pytest-cov || true
+            pytest --junitxml=reports/results.xml || true
+          '''
+        }
+      }
+      post {
+        always {
+          echo "🧪 Test stage complete (success or failure)."
+        }
+      }
+    }
+
+    stage('Publish test results & artifacts') {
+      steps {
+        dir("${PROJECT_DIR}") {
+          archiveArtifacts artifacts: 'reports/**', fingerprint: true, allowEmptyArchive: true
+          junit allowEmptyResults: true, testResults: 'reports/results.xml'
+          echo "📄 Test reports published."
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "🎉 Pipeline finished successfully."
+    }
+    unstable {
+      echo "⚠️ Pipeline finished — some tests failed or were unstable."
+    }
+    failure {
+      echo "❌ Pipeline failed. Check the console output for details."
+    }
+    always {
+      dir("${PROJECT_DIR}") {
+        // ✅ Optional cleanup to save space
+        sh '''
+          if [ -d ".venv" ]; then
+            rm -rf .venv
+            echo "🧹 Cleaned up .venv to save space between builds."
+          else
+            echo "ℹ️ No .venv directory found to clean up."
+          fi
+        '''
+      }
+      echo "✅ Pipeline completed at ${new Date()}."
+    }
+  }
+}
